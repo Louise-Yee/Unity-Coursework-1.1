@@ -10,6 +10,7 @@ public class EnemyAI : MonoBehaviour
     public AudioSource audioSource; // Audio source for playing sounds
 
     public AudioSource hitAudio; // Audio source for playing hit sounds
+
     public Animator animator;
 
    
@@ -100,7 +101,6 @@ private void AttackPlayer()
         {
             audioSource.Play();
         }
-
 
     // Attack logic
     Debug.Log("Attacking");
