@@ -4,13 +4,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public class TutMenu : MonoBehaviour
 {
-    public int gameSceneIndex = 2;  // Index of the target scene
+    public int gameSceneIndex = 1;  // Index of the target scene
     public Vector3 teleportPosition = new Vector3(0, 0, 0);  // Position to teleport the player to
     public string playerTag = "Player";  // Tag to locate the player
 
 
     public void OnWoTutClick(){
-        SceneManager.LoadSceneAsync(2);
+        SceneManager.LoadSceneAsync(gameSceneIndex);
     }
     public void OnTutClick()
     {
