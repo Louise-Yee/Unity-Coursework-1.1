@@ -88,6 +88,8 @@ public class PlayerMovement : MonoBehaviour
         // Store the original height of the character controller
         originalHeight = controller.height;
 
+        mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", 100f);
+
         tutorialManager = FindObjectOfType<TutorialManager>();
         if(tutorialManager == null){
             Debug.LogError("TutorialManager not found in scene");
