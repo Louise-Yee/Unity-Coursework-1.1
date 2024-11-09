@@ -6,6 +6,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
+    private TutorialManager tutorialManager;
     // CharacterController and Rigidbody references
     private CharacterController controller;
     private Rigidbody rb;
@@ -86,6 +87,11 @@ public class PlayerMovement : MonoBehaviour
 
         // Store the original height of the character controller
         originalHeight = controller.height;
+
+        tutorialManager = FindObjectOfType<TutorialManager>();
+        if(tutorialManager == null){
+            Debug.LogError("TutorialManager not found in scene");
+        }
     }
 
     private void Update()
@@ -93,7 +99,9 @@ public class PlayerMovement : MonoBehaviour
         HandleMouseLook();
         HandleMovement();
         HandleJumpAndGravity();
-        HandleCrouching();
+        if(tutorialManager.isCrouchUnlocked){
+            HandleCrouching();
+        }
     }
 
     private void HandleMouseLook()
@@ -127,13 +135,15 @@ public class PlayerMovement : MonoBehaviour
 
         // Check if the player is running or crouching
 
-        if (Input.GetKey(KeyCode.LeftShift) && !isCrouching)
-        {
-            isRunning = true; // Set running state to true
-        }
-        else
-        {
-            isRunning = false; // Set running state to false
+        if(tutorialManager.isRunUnlocked){
+            if (Input.GetKey(KeyCode.LeftShift) && !isCrouching)
+            {
+                isRunning = true; // Set running state to true
+            }
+            else
+            {
+                isRunning = false; // Set running state to false
+            }
         }
 
         // Use run speed if running; otherwise, use player speed
@@ -180,12 +190,14 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Jump logic
-        if (Input.GetButtonDown("Jump") && jumpCount < maxJumps && !jumpBlocked)
-        {
-            playerVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravityValue);
-            jumpCount++;
-            jumpBlocked = true;
-            Invoke("UnblockJump", jumpCooldown);
+        if(tutorialManager.isJumpUnlocked){
+            if (Input.GetButtonDown("Jump") && jumpCount < maxJumps && !jumpBlocked)
+            {
+                playerVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravityValue);
+                jumpCount++;
+                jumpBlocked = true;
+                Invoke("UnblockJump", jumpCooldown);
+            }
         }
 
         if (!groundedPlayer)
@@ -200,16 +212,18 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleCrouching()
     {
-        // Check if Left Control is held down for crouching
-        if (Input.GetKey(KeyCode.LeftControl) && !isSliding)
-        {
-            StartCrouch(); // Start crouching if not already crouching
-        }
-        else
-        {
-            if (isCrouching) // Only attempt to stop crouching if currently crouching
+        if(tutorialManager.isCrouchUnlocked){
+            // Check if Left Control is held down for crouching
+            if (Input.GetKey(KeyCode.LeftControl) && !isSliding)
             {
-                StopCrouch();
+                StartCrouch(); // Start crouching if not already crouching
+            }
+            else
+            {
+                if (isCrouching) // Only attempt to stop crouching if currently crouching
+                {
+                    StopCrouch();
+                }
             }
         }
     }

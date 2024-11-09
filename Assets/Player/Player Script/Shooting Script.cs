@@ -10,17 +10,26 @@ public class ShootingScript : MonoBehaviour
     public GameObject impactEffect; // Impact effect on hit
     public LightFlash lightFlash;
 
+    private TutorialManager tutorialManager;
+
     [SerializeField]
     private AudioSource gunShotAudio; // Reference to the AudioSource
 
-    void Start() { }
+    void Start() { 
+        tutorialManager = FindObjectOfType<TutorialManager>();
+        if(tutorialManager == null){
+            Debug.LogError("TutorialManager not found in scene");
+        }
+     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButton(0)) // Fire1 is usually mapped to left mouse button
-        {
-            Shoot();
+        if(tutorialManager.isShootUnlocked){
+            if (Input.GetMouseButton(0)) // Fire1 is usually mapped to left mouse button
+            {
+                Shoot();
+            }
         }
     }
 
