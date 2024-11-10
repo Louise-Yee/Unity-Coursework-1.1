@@ -2,15 +2,27 @@ using UnityEngine;
 
 public class PlayerFootstepSound : MonoBehaviour
 {
-    public AudioSource audioSource; // The AudioSource component to play sounds
-    public AudioClip grassSound; // Audio clip for grass
-    public AudioClip stoneSound; // Audio clip for stone
+    [Header("Audio Settings")]
+    public AudioSource audioSource;
+    public AudioClip[] grassSounds; // Array of grass audio clips
+    public AudioClip stoneSound;
+    public AudioClip jumpSound; // Audio clip for jump
 
-    private string currentSurface = ""; // Current surface type
+    [Header("Surface Detection")]
+    public Transform groundCheckObject;
+    public float groundCheckDistance = 0.5f;
+    public LayerMask surfaceLayers;
+
+    [Header("Footstep Settings")]
+    public float baseStepInterval = 0.5f;
+    public float speedMultiplier = 1.5f;
+
+    private string currentSurface = "";
+    private PlayerMovement playerMovement;
+    private float footstepTimer = 0f;
 
     private void Start()
     {
-        // Ensure AudioSource is attached
         if (audioSource == null)
         {
             audioSource = GetComponent<AudioSource>();
@@ -19,28 +31,60 @@ public class PlayerFootstepSound : MonoBehaviour
                 Debug.LogError("AudioSource component not found on this GameObject.");
             }
         }
-    }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        // Check what layer the player is colliding with
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Grass"))
+        playerMovement = GetComponentInParent<PlayerMovement>();
+        if (playerMovement == null)
         {
-            currentSurface = "Grass";
+            Debug.LogError("PlayerMovement component not found on this GameObject.");
         }
-        else if (collision.gameObject.layer == LayerMask.NameToLayer("Stone"))
+
+        if (groundCheckObject == null)
         {
-            currentSurface = "Stone";
+            Debug.LogError("GroundCheckObject is not assigned.");
         }
     }
 
-    private void OnCollisionExit(Collision collision)
+    private void Update()
     {
-        // Reset current surface when no longer in contact
-        if (
-            collision.gameObject.layer == LayerMask.NameToLayer("Grass")
-            || collision.gameObject.layer == LayerMask.NameToLayer("Stone")
-        )
+        DetectSurface();
+
+        if (playerMovement != null && playerMovement.groundedPlayer && playerMovement.GetCurrentSpeed() > 0.1f)
+        {
+            footstepTimer -= Time.deltaTime;
+
+            float dynamicStepInterval = baseStepInterval / (playerMovement.GetCurrentSpeed() / 6f);
+            dynamicStepInterval = Mathf.Clamp(dynamicStepInterval, 0.2f, 1f);
+
+            if (footstepTimer <= 0f)
+            {
+                PlayFootstepSound();
+                footstepTimer = dynamicStepInterval;
+            }
+        }
+    }
+
+    private void DetectSurface()
+    {
+        if (groundCheckObject == null) return;
+
+        RaycastHit hit;
+        if (Physics.Raycast(groundCheckObject.position, Vector3.down, out hit, groundCheckDistance, surfaceLayers))
+        {
+            int layer = hit.collider.gameObject.layer;
+            if (layer == LayerMask.NameToLayer("Grass"))
+            {
+                currentSurface = "Grass";
+            }
+            else if (layer == LayerMask.NameToLayer("Stone"))
+            {
+                currentSurface = "Stone";
+            }
+            else
+            {
+                currentSurface = "";
+            }
+        }
+        else
         {
             currentSurface = "";
         }
@@ -50,15 +94,28 @@ public class PlayerFootstepSound : MonoBehaviour
     {
         if (audioSource != null && !string.IsNullOrEmpty(currentSurface))
         {
-            switch (currentSurface)
+            float playerSpeed = playerMovement.GetCurrentSpeed();
+            float pitchMultiplier = Mathf.Clamp(playerSpeed / 15f, 0.8f, 1.5f);
+            audioSource.pitch = pitchMultiplier;
+
+            if (currentSurface == "Grass" && grassSounds.Length > 0)
             {
-                case "Grass":
-                    audioSource.PlayOneShot(grassSound);
-                    break;
-                case "Stone":
-                    audioSource.PlayOneShot(stoneSound);
-                    break;
+                AudioClip randomGrassSound = grassSounds[Random.Range(0, grassSounds.Length)];
+                audioSource.PlayOneShot(randomGrassSound);
             }
+            else if (currentSurface == "Stone")
+            {
+                audioSource.PlayOneShot(stoneSound);
+            }
+        }
+    }
+
+    public void PlayJumpSound()
+    {
+        if (audioSource != null && jumpSound != null)
+        {
+            audioSource.PlayOneShot(jumpSound);
+            Debug.Log("Playing jump sound.");
         }
     }
 }

@@ -10,6 +10,7 @@ public class WallStick : MonoBehaviour
     [Header("References")]
     private PlayerMovement pm;
     private Rigidbody rb;
+    private Vector3 stickForwardDirection;
 
     // Camera reference
     public Camera playerCamera;
@@ -87,45 +88,50 @@ public class WallStick : MonoBehaviour
 
     private void StickToWall()
     {
-        // Check if player is not grounded and against a wall while holding the spacebar
-        if (!pm.groundedPlayer && (wallLeft || wallRight))
+        if (!pm.groundedPlayer && (wallLeft || wallRight) && Input.GetMouseButton(1))
         {
-            // Disable gravity to stick to the wall
-            pm.playerSpeed = pm.isRunning ? 15f : 8f;
+            // Set player speed and disable gravity for wall-sticking
+            // pm.playerSpeed = pm.isRunning ? 15f : 8f;
             rb.useGravity = false;
 
-            // Stop horizontal movement
+            // Freeze horizontal movement
             rb.velocity = new Vector3(0, rb.velocity.y, 0);
 
-            // Determine target tilt angle based on the wall side
-            float targetTilt = wallLeft ? -tiltAngle : tiltAngle;
+            // Capture the forward direction on initial stick
+            if (stickForwardDirection == Vector3.zero)
+            {
+                stickForwardDirection = transform.forward;
+            }
 
-            // Smoothly interpolate current tilt towards the target tilt
+            // Apply tilt based on wall side
+            float targetTilt = wallLeft ? -tiltAngle : tiltAngle;
             currentTilt = Mathf.LerpAngle(currentTilt, targetTilt, tiltSpeed * Time.deltaTime);
 
-            // Apply the tilt without affecting x and y axes
             Quaternion originalRotation = playerCamera.transform.localRotation;
             playerCamera.transform.localRotation = Quaternion.Euler(
                 originalRotation.eulerAngles.x,
                 originalRotation.eulerAngles.y,
                 currentTilt
             );
+
+            // Ensure player only moves forward in the stickForwardDirection
+            Vector3 stickMovement = stickForwardDirection * pm.playerSpeed * Time.deltaTime;
+            rb.MovePosition(rb.position + stickMovement);
         }
         else
         {
-            // Re-enable gravity when not sticking to a wall
             rb.useGravity = true;
-
-            // Smoothly reset the tilt back to 0 when not wall running
             currentTilt = Mathf.LerpAngle(currentTilt, 0f, tiltSpeed * Time.deltaTime);
 
-            // Apply the reset tilt without affecting x and y axes
             Quaternion originalRotation = playerCamera.transform.localRotation;
             playerCamera.transform.localRotation = Quaternion.Euler(
                 originalRotation.eulerAngles.x,
                 originalRotation.eulerAngles.y,
                 currentTilt
             );
+
+            // Reset the stick forward direction when the player stops wall-sticking
+            stickForwardDirection = Vector3.zero;
         }
     }
 

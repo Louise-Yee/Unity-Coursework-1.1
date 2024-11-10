@@ -11,16 +11,22 @@ public class ShootingScript : MonoBehaviour
     public LightFlash lightFlash;
 
     private TutorialManager tutorialManager;
+    private PlayerScore playerScore; // Reference to PlayerScore for updating the score
 
     [SerializeField]
     private AudioSource gunShotAudio; // Reference to the AudioSource
 
     void Start() { 
         tutorialManager = FindObjectOfType<TutorialManager>();
+        playerScore = FindObjectOfType<PlayerScore>(); // Get the PlayerScore component from the scene
         if(tutorialManager == null){
             Debug.LogError("TutorialManager not found in scene");
         }
-     }
+        if (playerScore == null)
+        {
+            Debug.LogError("PlayerScore not found in the scene. Make sure it's attached to a gameObject.");
+        }
+    }
 
     // Update is called once per frame
     void Update()
@@ -50,7 +56,7 @@ public class ShootingScript : MonoBehaviour
         }
         else
         {
-            Debug.Log("no muzzle flash");
+            Debug.Log("No muzzle flash");
         }
 
         if (lightFlash != null)
@@ -71,10 +77,16 @@ public class ShootingScript : MonoBehaviour
             Debug.Log(hit.transform.name); // Log the name of the object hit
 
             // Check if the object hit has a "EnemiesAI" component to apply damage
-            EnemiesAI enemy = hit.transform.GetComponent<EnemiesAI>();
+            EnemyAI enemy = hit.transform.GetComponent<EnemyAI>();
             if (enemy != null)
             {
                 enemy.takeDamageFromPlayer(); // Call takeDamageFromPlayer() on the correct target
+                
+                // Add score for killing the enemy (100 points)
+                if (playerScore != null)
+                {
+                    playerScore.AddScore(100); // Add 100 points for each enemy killed
+                }
             }
 
             // Instantiate impact effect at the hit point
