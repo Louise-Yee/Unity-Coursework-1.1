@@ -7,6 +7,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private TutorialManager tutorialManager;
+
     // CharacterController and Rigidbody references
     private CharacterController controller;
     private Rigidbody rb;
@@ -91,7 +92,8 @@ public class PlayerMovement : MonoBehaviour
         mouseSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", 100f);
 
         tutorialManager = FindObjectOfType<TutorialManager>();
-        if(tutorialManager == null){
+        if (tutorialManager == null)
+        {
             Debug.LogError("TutorialManager not found in scene");
         }
     }
@@ -101,7 +103,8 @@ public class PlayerMovement : MonoBehaviour
         HandleMouseLook();
         HandleMovement();
         HandleJumpAndGravity();
-        if(tutorialManager.isCrouchUnlocked){
+        if (tutorialManager.isCrouchUnlocked)
+        {
             HandleCrouching();
         }
     }
@@ -137,7 +140,8 @@ public class PlayerMovement : MonoBehaviour
 
         // Check if the player is running or crouching
 
-        if(tutorialManager.isRunUnlocked){
+        if (tutorialManager.isRunUnlocked)
+        {
             if (Input.GetKey(KeyCode.LeftShift) && !isCrouching)
             {
                 isRunning = true; // Set running state to true
@@ -154,19 +158,17 @@ public class PlayerMovement : MonoBehaviour
         // Move the character using the calculated speed
         controller.Move(move * speed * Time.deltaTime);
 
-        if (move.magnitude > 0.1f)
-        {
-            PlayerFootstepSound footstepSound = GetComponent<PlayerFootstepSound>();
-            if (footstepSound != null)
-            {
-                footstepSound.PlayFootstepSound();
-            }
-        }
+        // Update Rigidbody velocity if using Rigidbody for other purposes
+        rb.velocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
+
+        // (Optional) Clamp the velocity if necessary
+        rb.velocity = ClampMagnitude(rb.velocity, maximumPlayerSpeed);
     }
 
     private void HandleJumpAndGravity()
     {
         Vector3 origin = transform.position + Vector3.up * 0.5f;
+
         // Check for left wall
         wallLeft = Physics.Raycast(
             origin,
@@ -184,6 +186,7 @@ public class PlayerMovement : MonoBehaviour
             wallCheckDistance,
             whatIsWall
         );
+
         // Check if the player is sticking to a wall
         if (!groundedPlayer && (wallLeft || wallRight) && Input.GetMouseButton(1))
         {
@@ -192,13 +195,21 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Jump logic
-        if(tutorialManager.isJumpUnlocked){
+        if (tutorialManager.isJumpUnlocked)
+        {
             if (Input.GetButtonDown("Jump") && jumpCount < maxJumps && !jumpBlocked)
             {
                 playerVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravityValue);
                 jumpCount++;
                 jumpBlocked = true;
                 Invoke("UnblockJump", jumpCooldown);
+
+                // Play jump sound
+                PlayerFootstepSound footstepSound = GetComponent<PlayerFootstepSound>();
+                if (footstepSound != null)
+                {
+                    footstepSound.PlayJumpSound();
+                }
             }
         }
 
@@ -214,7 +225,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleCrouching()
     {
-        if(tutorialManager.isCrouchUnlocked){
+        if (tutorialManager.isCrouchUnlocked)
+        {
             // Check if Left Control is held down for crouching
             if (Input.GetKey(KeyCode.LeftControl) && !isSliding)
             {
