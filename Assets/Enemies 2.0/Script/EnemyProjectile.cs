@@ -33,12 +33,7 @@ public class EnemyProjectile : MonoBehaviour
             Debug.Log("Hit the player!");
 
             // Access the PlayerHealth component
-            PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
-
-            if (playerHealth != null)
-            {
-                playerHealth.TakeDamage(); // Example function call to decrease health by 1
-            }
+            
 
             gameObject.SetActive(false); // Deactivate instead of destroying
         }

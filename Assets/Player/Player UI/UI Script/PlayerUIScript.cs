@@ -11,7 +11,6 @@ public class PlayerUIManager : MonoBehaviour
     {
         // Get the PlayerMovement component attached to the player
         player = FindObjectOfType<PlayerMovement>();
-
         // Check if the UI elements are assigned
         if (speedText == null || jumpHeightText == null)
         {
