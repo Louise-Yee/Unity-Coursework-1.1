@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -24,6 +25,13 @@ public class EnemyAI : MonoBehaviour
     public float sightRange, attackRange;
     
     private bool playerInSightRange, playerInAttackRange;
+
+    public delegate void EnemyDeathHandler(GameObject enemy);
+    public event EnemyDeathHandler OnEnemyDeath;
+    // public event Action<GameObject> OnEnemyDeath; // Event for enemy death
+
+    // Call this method when the enemy dies
+
 
     private void Awake()
     {
@@ -128,17 +136,15 @@ private void AttackPlayer()
     Invoke(nameof(ResetAttack), timeBetweenAttacks);
 }
 
-
-
     private void ResetAttack()
     {
         alreadyAttacked = false;
     }
 
-    private void TakeDamage(int damage)
-    {
-        Destroy(gameObject);
-    }
+    // private void TakeDamage()
+    // {
+    //     Destroy(gameObject);
+    // }
 
     // private void OnDrawGizmosSelected()
     // {
@@ -155,14 +161,18 @@ private void AttackPlayer()
     {
         if (agent != null)
         {
-            StartDissolve();  // Trigger dissolve animation
+            Die();  // Trigger dissolve animation
         }
         // Destroy the entire GameObject
-        Destroy(gameObject);
+        // Destroy(gameObject);
     }
 
-    public void StartDissolve()
+    private void Die()
     {
-        animator.SetTrigger("isDissolving");  // Trigger dissolve animation
+        // animator.SetTrigger("isDissolving");  // Trigger dissolve animation
+        // Invoke the OnEnemyDeath event
+        OnEnemyDeath?.Invoke(gameObject); // Notify subscribers about this enemy’s death
     }
+
+
 }

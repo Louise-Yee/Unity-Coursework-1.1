@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject enemyPrefab; // Your enemy prefab
-    public int numberOfEnemies; // Number of enemies to spawn
+    public int numberOfEnemies; // Number of enemies to maintain at all times
 
     // Define ranges for x, y, and z coordinates
     public float minX, maxX;
@@ -14,6 +14,7 @@ public class EnemySpawner : MonoBehaviour
     public float minimumDistance; // Minimum distance between enemies
     public float navMeshCheckRadius = 1.0f; // Radius for NavMesh sampling
 
+    private List<GameObject> activeEnemies = new List<GameObject>();
     private List<Vector3> spawnPositions = new List<Vector3>();
 
     private void Start()
@@ -21,9 +22,20 @@ public class EnemySpawner : MonoBehaviour
         SpawnEnemies();
     }
 
+    private void Update()
+    {
+        // Check if we need to spawn more enemies
+        if (activeEnemies.Count < numberOfEnemies)
+        {
+            SpawnEnemies();
+        }
+    }
+
     private void SpawnEnemies()
     {
-        for (int i = 0; i < numberOfEnemies; i++)
+        int enemiesToSpawn = numberOfEnemies - activeEnemies.Count;
+
+        for (int i = 0; i < enemiesToSpawn; i++)
         {
             Vector3 spawnPosition;
             bool validPosition = false;
@@ -50,7 +62,9 @@ public class EnemySpawner : MonoBehaviour
                     if (IsPositionValid(spawnPosition))
                     {
                         spawnPositions.Add(spawnPosition);
-                        Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+                        GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+                        activeEnemies.Add(enemy);
+                        enemy.GetComponent<EnemyAI>().OnEnemyDeath += HandleEnemyDeath; // Subscribe to enemy death event
                         validPosition = true;
                         Debug.Log($"Spawned enemy at {spawnPosition}");
                     }
@@ -78,5 +92,12 @@ public class EnemySpawner : MonoBehaviour
             }
         }
         return true; // Valid position
+    }
+
+    private void HandleEnemyDeath(GameObject enemy)
+    {
+        // Remove the enemy from the active enemies list and spawn a new one
+        activeEnemies.Remove(enemy);
+        Destroy(enemy);
     }
 }
