@@ -30,7 +30,7 @@ public class Projectile : MonoBehaviour
         // Handle collision with the player
         if (collision.gameObject.CompareTag("Player"))
         {
-            Debug.Log("Hit the player!");
+            // Debug.Log("Hit the player!");
             gameObject.SetActive(false); // Deactivate instead of destroying
         }
     }

@@ -4,36 +4,64 @@ using System.Collections.Generic;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameObject enemyPrefab; // Your enemy prefab
-    public int numberOfEnemies; // Number of enemies to maintain at all times
+    public GameObject enemyPrefab;
+    public int baseEnemiesPerSpawn = 1; // Initial number of enemies to spawn
+    public float baseSpawnInterval = 5f; // Initial time between spawns in seconds
+    public int maxEnemies = 20; // Maximum number of enemies allowed at any time
 
-    // Define ranges for x, y, and z coordinates
-    public float minX, maxX;
-    public float minY, maxY; // Typically the y-range will be around the ground height
-    public float minZ, maxZ;
-    public float minimumDistance; // Minimum distance between enemies
-    public float navMeshCheckRadius = 1.0f; // Radius for NavMesh sampling
+    // Ranges for spawning positions
+    public float minX, maxX, minY, maxY, minZ, maxZ;
+    public float minimumDistance;
+    public float navMeshCheckRadius = 1.0f;
 
     private List<GameObject> activeEnemies = new List<GameObject>();
     private List<Vector3> spawnPositions = new List<Vector3>();
 
+    private float spawnInterval;
+    private float spawnTimer;
+    private int enemiesPerSpawn;
+
+    // Variables for point-based difficulty scaling
+    public int pointsPerDifficultyIncrease = 500; // Points required to scale difficulty
+    private int lastDifficultyIncreasePoints = 0;
+
+    // Reference to PlayerScore script
+    private PlayerScore playerScore;
+
     private void Start()
     {
-        SpawnEnemies();
+        playerScore = FindObjectOfType<PlayerScore>(); // Find the PlayerScore script in the scene
+        spawnInterval = baseSpawnInterval;
+        enemiesPerSpawn = baseEnemiesPerSpawn;
+        SpawnFixedNumberOfEnemies(); // Initial spawn of enemies
     }
 
     private void Update()
     {
-        // Check if we need to spawn more enemies
-        if (activeEnemies.Count < numberOfEnemies)
+        // Spawn new enemies periodically if under the maxEnemies limit
+        spawnTimer += Time.deltaTime;
+        if (spawnTimer >= spawnInterval && activeEnemies.Count < maxEnemies)
         {
-            SpawnEnemies();
+            // Spawn a fixed number of enemies (does not scale with difficulty)
+            SpawnFixedNumberOfEnemies();
+            spawnTimer = 0;
+        }
+
+        // Increase difficulty based on points
+        if (playerScore != null && playerScore.currentScore - lastDifficultyIncreasePoints >= pointsPerDifficultyIncrease)
+        {
+            Debug.Log("Last difficulty increase points: " + lastDifficultyIncreasePoints);
+            Debug.Log("points per difficulty increase: " + pointsPerDifficultyIncrease);
+            Debug.Log("Increasing difficulty based on points: " + playerScore.currentScore);
+            lastDifficultyIncreasePoints = playerScore.currentScore;
+            ScaleDifficulty();
         }
     }
 
-    private void SpawnEnemies()
+    private void SpawnFixedNumberOfEnemies()
     {
-        int enemiesToSpawn = numberOfEnemies - activeEnemies.Count;
+        // Always spawn a fixed number of enemies based on baseEnemiesPerSpawn
+        int enemiesToSpawn = Mathf.Min(baseEnemiesPerSpawn, maxEnemies - activeEnemies.Count);
 
         for (int i = 0; i < enemiesToSpawn; i++)
         {
@@ -41,63 +69,56 @@ public class EnemySpawner : MonoBehaviour
             bool validPosition = false;
             int attempts = 0;
 
-            // Try to find a valid spawn position
-            while (!validPosition && attempts < 100) // Limit attempts to avoid infinite loops
+            while (!validPosition && attempts < 100)
             {
-                // Generate a position within specified x, y, z ranges
                 Vector3 positionWithinRange = new Vector3(
                     Random.Range(minX, maxX),
                     Random.Range(minY, maxY),
                     Random.Range(minZ, maxZ)
                 );
 
-                Debug.Log($"Attempt {attempts + 1}: Generated position {positionWithinRange}");
-
-                // Use NavMesh to find the correct position on the ground within range
                 if (NavMesh.SamplePosition(positionWithinRange, out NavMeshHit hit, navMeshCheckRadius, NavMesh.AllAreas))
                 {
-                    spawnPosition = hit.position; // This uses the correct y position from the NavMesh
+                    spawnPosition = hit.position;
 
-                    // Check if the position is valid (not too close to another enemy)
                     if (IsPositionValid(spawnPosition))
                     {
                         spawnPositions.Add(spawnPosition);
                         GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
                         activeEnemies.Add(enemy);
-                        enemy.GetComponent<EnemyAI>().OnEnemyDeath += HandleEnemyDeath; // Subscribe to enemy death event
+                        enemy.GetComponent<EnemyAI>().OnEnemyDeath += HandleEnemyDeath;
                         validPosition = true;
-                        Debug.Log($"Spawned enemy at {spawnPosition}");
                     }
                 }
-
                 attempts++;
-            }
-
-            // If we couldn't find a valid position after 100 attempts, log a warning
-            if (!validPosition)
-            {
-                Debug.LogWarning($"Failed to find a valid spawn position for enemy {i + 1} after {attempts} attempts.");
             }
         }
     }
 
     private bool IsPositionValid(Vector3 position)
     {
-        // Check if the new spawn position is too close to any existing ones
         foreach (Vector3 existingPosition in spawnPositions)
         {
             if (Vector3.Distance(position, existingPosition) < minimumDistance)
             {
-                return false; // Too close to another enemy
+                return false;
             }
         }
-        return true; // Valid position
+        return true;
     }
 
     private void HandleEnemyDeath(GameObject enemy)
     {
-        // Remove the enemy from the active enemies list and spawn a new one
         activeEnemies.Remove(enemy);
         Destroy(enemy);
+    }
+
+    private void ScaleDifficulty()
+    {
+        // Decrease the spawn interval, but don’t go below a certain threshold
+        spawnInterval = Mathf.Max(1f, spawnInterval - 0.5f);
+
+        // Optionally, you can also increase the difficulty in other ways, such as making enemies tougher
+        Debug.Log($"Difficulty increased: spawnInterval = {spawnInterval}");
     }
 }

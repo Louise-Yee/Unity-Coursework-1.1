@@ -20,11 +20,11 @@ public class ShootingScript : MonoBehaviour
         tutorialManager = FindObjectOfType<TutorialManager>();
         playerScore = FindObjectOfType<PlayerScore>(); // Get the PlayerScore component from the scene
         if(tutorialManager == null){
-            Debug.LogError("TutorialManager not found in scene");
+            // Debug.LogError("TutorialManager not found in scene");
         }
         if (playerScore == null)
         {
-            Debug.LogError("PlayerScore not found in the scene. Make sure it's attached to a gameObject.");
+            // Debug.LogError("PlayerScore not found in the scene. Make sure it's attached to a gameObject.");
         }
     }
 
@@ -47,7 +47,7 @@ public class ShootingScript : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("No AudioSource found for gunshot sound.");
+            // Debug.LogWarning("No AudioSource found for gunshot sound.");
         }
         // Show muzzle flash
         if (muzzleFlash != null)
@@ -56,7 +56,7 @@ public class ShootingScript : MonoBehaviour
         }
         else
         {
-            Debug.Log("No muzzle flash");
+            // Debug.Log("No muzzle flash");
         }
 
         if (lightFlash != null)
@@ -74,7 +74,7 @@ public class ShootingScript : MonoBehaviour
             )
         )
         {
-            Debug.Log(hit.transform.name); // Log the name of the object hit
+            // Debug.Log(hit.transform.name); // Log the name of the object hit
 
             // Check if the object hit has a "EnemiesAI" component to apply damage
             EnemyAI enemy = hit.transform.GetComponent<EnemyAI>();

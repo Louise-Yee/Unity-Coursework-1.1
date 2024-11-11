@@ -101,7 +101,7 @@ private void AttackPlayer()
     animator.SetTrigger("isAttacking");    // Trigger attack animation
 
     // Attack logic
-    Debug.Log("Attacking");
+    // Debug.Log("Attacking");
 
     // Get a projectile from the pool
     GameObject proj = ObjectPool.Instance.GetPooledObject();
