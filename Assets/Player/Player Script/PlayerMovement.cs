@@ -95,6 +95,8 @@ public class PlayerMovement : MonoBehaviour
         if (tutorialManager == null)
         {
             Debug.LogError("TutorialManager not found in scene");
+        } else{
+            Debug.Log("TutorialManager found");
         }
     }
 
