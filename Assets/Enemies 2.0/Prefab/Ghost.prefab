@@ -253,7 +253,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -117.18, y: 20.96, z: -26.409697}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7508137150534877987}
@@ -349,7 +349,7 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
-  yOffset: 0.5
+  yOffset: 0.6
   animator: {fileID: 7172988795817905215}
   patrolPointRange: 0
   timeBetweenAttacks: 1
