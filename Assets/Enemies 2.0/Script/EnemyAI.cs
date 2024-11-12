@@ -6,12 +6,12 @@ public class EnemyAI : MonoBehaviour
 {
     public NavMeshAgent agent;
     public Transform player;
-    public LayerMask whatIsGround, whatIsPlayer;
+    public LayerMask whatIsGround,
+        whatIsPlayer;
     public float yOffset; // Adjust this value as needed
 
     public Animator animator;
 
-   
     // Patrol variables
     private Vector3 patrolPoint;
     private bool patrolPointSet;
@@ -21,13 +21,16 @@ public class EnemyAI : MonoBehaviour
     private bool alreadyAttacked;
     public float timeBetweenAttacks;
 
-    // States 
-    public float sightRange, attackRange;
-    
-    private bool playerInSightRange, playerInAttackRange;
+    // States
+    public float sightRange,
+        attackRange;
+
+    private bool playerInSightRange,
+        playerInAttackRange;
 
     public delegate void EnemyDeathHandler(GameObject enemy);
     public event EnemyDeathHandler OnEnemyDeath;
+
     // public event Action<GameObject> OnEnemyDeath; // Event for enemy death
 
     // Call this method when the enemy dies
@@ -45,19 +48,48 @@ public class EnemyAI : MonoBehaviour
         playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
         playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
 
-        if (!playerInSightRange && !playerInAttackRange) Patroling();
-        else if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-        else if (playerInSightRange && playerInAttackRange) AttackPlayer();
+        // Perform line-of-sight check
+        bool hasLineOfSight = false;
+        if (playerInSightRange || playerInAttackRange)
+        {
+            Vector3 directionToPlayer = player.position - transform.position;
+            RaycastHit hit;
+
+            // Cast a ray towards the player, checking for obstacles
+            if (
+                Physics.Raycast(
+                    transform.position + Vector3.up * yOffset,
+                    directionToPlayer.normalized,
+                    out hit,
+                    sightRange
+                )
+            )
+            {
+                if (hit.collider.CompareTag("Player")) // Ensure the ray hits the player
+                {
+                    hasLineOfSight = true;
+                }
+            }
+        }
+
+        // Only proceed if the player is within sight and the enemy has a clear line of sight
+        if (!playerInSightRange && !playerInAttackRange)
+            Patroling();
+        else if (playerInSightRange && !playerInAttackRange && hasLineOfSight)
+            ChasePlayer();
+        else if (playerInSightRange && playerInAttackRange && hasLineOfSight)
+            AttackPlayer();
     }
 
     private void Patroling()
     {
-        if (!patrolPointSet) SearchPatrolPoint();
+        if (!patrolPointSet)
+            SearchPatrolPoint();
 
         if (patrolPointSet)
         {
             agent.SetDestination(patrolPoint);
-            animator.SetBool("isRunning", true);  // Trigger running animation
+            animator.SetBool("isRunning", true); // Trigger running animation
         }
 
         Vector3 distanceToPatrolPoint = transform.position - patrolPoint;
@@ -66,7 +98,7 @@ public class EnemyAI : MonoBehaviour
         if (distanceToPatrolPoint.magnitude < 1f)
         {
             patrolPointSet = false;
-            animator.SetBool("isRunning", false);  // Stop running animation
+            animator.SetBool("isRunning", false); // Stop running animation
         }
     }
 
@@ -76,7 +108,11 @@ public class EnemyAI : MonoBehaviour
         float randomZ = Random.Range(-patrolPointRange, patrolPointRange);
         float randomX = Random.Range(-patrolPointRange, patrolPointRange);
 
-        patrolPoint = new Vector3(transform.position.x + randomX, transform.position.y, transform.position.z + randomZ);
+        patrolPoint = new Vector3(
+            transform.position.x + randomX,
+            transform.position.y,
+            transform.position.z + randomZ
+        );
 
         // Check if the point is on the ground
         if (Physics.Raycast(patrolPoint, -transform.up, 2f, whatIsGround))
@@ -86,55 +122,60 @@ public class EnemyAI : MonoBehaviour
     private void ChasePlayer()
     {
         agent.SetDestination(player.position);
-        animator.SetBool("isRunning", true);  // Trigger running animation
+        animator.SetBool("isRunning", true); // Trigger running animation
     }
 
-private void AttackPlayer()
-{
-    if (alreadyAttacked) return; // Exit if cooldown is active
-
-    // Make sure enemy doesn't move
-    agent.SetDestination(transform.position);
-    transform.LookAt(player);
-
-    animator.SetBool("isRunning", false);  // Stop running animation
-    animator.SetTrigger("isAttacking");    // Trigger attack animation
-
-    // Attack logic
-    // Debug.Log("Attacking");
-
-    // Get a projectile from the pool
-    GameObject proj = ObjectPool.Instance.GetPooledObject();
-    if (proj != null)
+    private void AttackPlayer()
     {
-        // Set the starting position of the projectile with an offset from the enemy’s y position
-        Vector3 projectilePosition = new Vector3(
-            transform.position.x, 
-            transform.position.y + yOffset, // Offset from the enemy's y position
-            transform.position.z
-        );
-        
-        proj.transform.position = projectilePosition;
+        if (alreadyAttacked)
+            return; // Exit if cooldown is active
 
-        // Set the projectile to look towards the player’s position with a fixed y-level targeting
-        Vector3 targetPosition = new Vector3(player.position.x, player.position.y, player.position.z); // Target player's x and z, fixed y
-        proj.transform.LookAt(targetPosition);
+        // Make sure enemy doesn't move
+        agent.SetDestination(transform.position);
+        transform.LookAt(player);
 
-        proj.SetActive(true); // Activate the projectile
+        animator.SetBool("isRunning", false); // Stop running animation
+        animator.SetTrigger("isAttacking"); // Trigger attack animation
 
-        // Optionally set the projectile's velocity if using Rigidbody
-        Rigidbody rb = proj.GetComponent<Rigidbody>();
-        if (rb != null)
+        // Attack logic
+        // Debug.Log("Attacking");
+
+        // Get a projectile from the pool
+        GameObject proj = ObjectPool.Instance.GetPooledObject();
+        if (proj != null)
         {
-            Vector3 direction = (targetPosition - proj.transform.position).normalized;
-            rb.velocity = direction * rb.velocity.magnitude; // Set the velocity towards the target position
-        }
-    }
+            // Set the starting position of the projectile with an offset from the enemy’s y position
+            Vector3 projectilePosition = new Vector3(
+                transform.position.x,
+                transform.position.y + yOffset, // Offset from the enemy's y position
+                transform.position.z
+            );
 
-    // Start cooldown timer
-    alreadyAttacked = true;
-    Invoke(nameof(ResetAttack), timeBetweenAttacks);
-}
+            proj.transform.position = projectilePosition;
+
+            // Set the projectile to look towards the player’s position with a fixed y-level targeting
+            Vector3 targetPosition = new Vector3(
+                player.position.x,
+                player.position.y,
+                player.position.z
+            ); // Target player's x and z, fixed y
+            proj.transform.LookAt(targetPosition);
+
+            proj.SetActive(true); // Activate the projectile
+
+            // Optionally set the projectile's velocity if using Rigidbody
+            Rigidbody rb = proj.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                Vector3 direction = (targetPosition - proj.transform.position).normalized;
+                rb.velocity = direction * rb.velocity.magnitude; // Set the velocity towards the target position
+            }
+        }
+
+        // Start cooldown timer
+        alreadyAttacked = true;
+        Invoke(nameof(ResetAttack), timeBetweenAttacks);
+    }
 
     private void ResetAttack()
     {
@@ -161,7 +202,7 @@ private void AttackPlayer()
     {
         if (agent != null)
         {
-            Die();  // Trigger dissolve animation
+            Die(); // Trigger dissolve animation
         }
         // Destroy the entire GameObject
         // Destroy(gameObject);
@@ -169,10 +210,8 @@ private void AttackPlayer()
 
     private void Die()
     {
-        // animator.SetTrigger("isDissolving");  // Trigger dissolve animation
+        // animator.SetTrigger("isDissolving"); // Trigger dissolve animation
         // Invoke the OnEnemyDeath event
         OnEnemyDeath?.Invoke(gameObject); // Notify subscribers about this enemy’s death
     }
-
-
 }

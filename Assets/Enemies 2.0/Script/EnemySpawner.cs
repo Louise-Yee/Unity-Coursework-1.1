@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections.Generic;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -10,7 +10,12 @@ public class EnemySpawner : MonoBehaviour
     public int maxEnemies = 20; // Maximum number of enemies allowed at any time
 
     // Ranges for spawning positions
-    public float minX, maxX, minY, maxY, minZ, maxZ;
+    public float minX,
+        maxX,
+        minY,
+        maxY,
+        minZ,
+        maxZ;
     public float minimumDistance;
     public float navMeshCheckRadius = 1.0f;
 
@@ -27,6 +32,7 @@ public class EnemySpawner : MonoBehaviour
 
     // Reference to PlayerScore script
     private PlayerScore playerScore;
+    public AudioSource deathSound;
 
     private void Start()
     {
@@ -48,7 +54,11 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // Increase difficulty based on points
-        if (playerScore != null && playerScore.currentScore - lastDifficultyIncreasePoints >= pointsPerDifficultyIncrease)
+        if (
+            playerScore != null
+            && playerScore.currentScore - lastDifficultyIncreasePoints
+                >= pointsPerDifficultyIncrease
+        )
         {
             Debug.Log("Last difficulty increase points: " + lastDifficultyIncreasePoints);
             Debug.Log("points per difficulty increase: " + pointsPerDifficultyIncrease);
@@ -77,14 +87,25 @@ public class EnemySpawner : MonoBehaviour
                     Random.Range(minZ, maxZ)
                 );
 
-                if (NavMesh.SamplePosition(positionWithinRange, out NavMeshHit hit, navMeshCheckRadius, NavMesh.AllAreas))
+                if (
+                    NavMesh.SamplePosition(
+                        positionWithinRange,
+                        out NavMeshHit hit,
+                        navMeshCheckRadius,
+                        NavMesh.AllAreas
+                    )
+                )
                 {
                     spawnPosition = hit.position;
 
                     if (IsPositionValid(spawnPosition))
                     {
                         spawnPositions.Add(spawnPosition);
-                        GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+                        GameObject enemy = Instantiate(
+                            enemyPrefab,
+                            spawnPosition,
+                            Quaternion.identity
+                        );
                         activeEnemies.Add(enemy);
                         enemy.GetComponent<EnemyAI>().OnEnemyDeath += HandleEnemyDeath;
                         validPosition = true;
@@ -109,6 +130,21 @@ public class EnemySpawner : MonoBehaviour
 
     private void HandleEnemyDeath(GameObject enemy)
     {
+        print("Enemy is dead");
+
+        if (deathSound != null)
+        {
+            // Create a temporary GameObject to play the sound
+            GameObject tempSoundObject = new GameObject("TempDeathSound");
+            AudioSource tempAudioSource = tempSoundObject.AddComponent<AudioSource>();
+            tempAudioSource.clip = deathSound.clip;
+            tempAudioSource.Play();
+
+            // Destroy the temp object after the sound has finished playing
+            Destroy(tempSoundObject, deathSound.clip.length);
+        }
+
+        // Remove the enemy from the list and destroy the enemy GameObject immediately
         activeEnemies.Remove(enemy);
         Destroy(enemy);
     }

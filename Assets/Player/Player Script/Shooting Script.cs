@@ -45,9 +45,10 @@ public class ShootingScript : MonoBehaviour
     void Shoot()
     {
         PlayerOptionMenu playerOptionMenu = GetComponent<PlayerOptionMenu>();
-        
-        if(playerOptionMenu.isGameOver || playerOptionMenu.isPaused){
-           return; 
+
+        if (playerOptionMenu.isGameOver || playerOptionMenu.isPaused)
+        {
+            return;
         }
         if (gunShotAudio != null)
         {
@@ -84,6 +85,30 @@ public class ShootingScript : MonoBehaviour
         {
             // Debug.Log(hit.transform.name); // Log the name of the object hit
 
+            TutorialEnemyBehavior tutorialEnemy =
+                hit.transform.GetComponent<TutorialEnemyBehavior>();
+            if (tutorialEnemy != null)
+            {
+                // Call the Die method to destroy the enemy
+                tutorialEnemy.Die();
+
+                // Optionally, add score or effects here
+                if (playerScore != null)
+                {
+                    playerScore.AddScore(0);
+                }
+
+                // You can also instantiate impact effects if needed
+                if (impactEffect != null)
+                {
+                    GameObject impactGO = Instantiate(
+                        impactEffect,
+                        hit.point,
+                        Quaternion.LookRotation(hit.normal)
+                    );
+                    Destroy(impactGO, 2f); // Destroy impact effect after 2 seconds
+                }
+            }
             // Check if the object hit has a "EnemiesAI" component to apply damage
             EnemyAI enemy = hit.transform.GetComponent<EnemyAI>();
             if (enemy != null)
