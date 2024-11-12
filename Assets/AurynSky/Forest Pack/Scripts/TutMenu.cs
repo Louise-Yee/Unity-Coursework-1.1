@@ -16,7 +16,8 @@ public class TutMenu : MonoBehaviour
     }
 
     public void OnTutClick()
-    {
+    {   
+        Time.timeScale = 1f;
         Debug.Log("Play button clicked. Starting scene load...");
         // Subscribe to the sceneLoaded event
         SceneManager.sceneLoaded += OnSceneLoaded;
