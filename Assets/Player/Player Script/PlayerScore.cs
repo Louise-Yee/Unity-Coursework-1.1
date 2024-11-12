@@ -1,10 +1,11 @@
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerScore : MonoBehaviour
 {
     public int currentScore = 0; // The player's score
-    public Text scoreText; // Reference to the UI Text that will display the score
+    public TextMeshProUGUI scoreText; // Reference to the TextMeshPro UI Text that will display the score
+    public TextMeshProUGUI finalScoreText; // Reference to the TextMeshPro UI Text that will display the score
 
     void Start()
     {
@@ -24,6 +25,10 @@ public class PlayerScore : MonoBehaviour
         if (scoreText != null)
         {
             scoreText.text = "Score: " + currentScore.ToString(); // Display score
+        }
+        if (finalScoreText != null)
+        {
+            finalScoreText.text = currentScore.ToString();
         }
     }
 

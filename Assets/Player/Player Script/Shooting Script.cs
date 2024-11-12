@@ -16,10 +16,12 @@ public class ShootingScript : MonoBehaviour
     [SerializeField]
     private AudioSource gunShotAudio; // Reference to the AudioSource
 
-    void Start() { 
+    void Start()
+    {
         tutorialManager = FindObjectOfType<TutorialManager>();
         playerScore = FindObjectOfType<PlayerScore>(); // Get the PlayerScore component from the scene
-        if(tutorialManager == null){
+        if (tutorialManager == null)
+        {
             // Debug.LogError("TutorialManager not found in scene");
         }
         if (playerScore == null)
@@ -31,8 +33,9 @@ public class ShootingScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(tutorialManager.isShootUnlocked){
-            if (Input.GetMouseButton(0)) // Fire1 is usually mapped to left mouse button
+        if (tutorialManager.isShootUnlocked)
+        {
+            if (Input.GetMouseButtonDown(0)) // Fire1 is usually mapped to left mouse button
             {
                 Shoot();
             }
@@ -41,6 +44,12 @@ public class ShootingScript : MonoBehaviour
 
     void Shoot()
     {
+        PlayerOptionMenu playerOptionMenu = GetComponent<PlayerOptionMenu>();
+
+        if (playerOptionMenu.isGameOver || playerOptionMenu.isPaused)
+        {
+            return;
+        }
         if (gunShotAudio != null)
         {
             gunShotAudio.Play();
@@ -76,12 +85,36 @@ public class ShootingScript : MonoBehaviour
         {
             // Debug.Log(hit.transform.name); // Log the name of the object hit
 
+            TutorialEnemyBehavior tutorialEnemy =
+                hit.transform.GetComponent<TutorialEnemyBehavior>();
+            if (tutorialEnemy != null)
+            {
+                // Call the Die method to destroy the enemy
+                tutorialEnemy.Die();
+
+                // Optionally, add score or effects here
+                if (playerScore != null)
+                {
+                    playerScore.AddScore(0);
+                }
+
+                // You can also instantiate impact effects if needed
+                if (impactEffect != null)
+                {
+                    GameObject impactGO = Instantiate(
+                        impactEffect,
+                        hit.point,
+                        Quaternion.LookRotation(hit.normal)
+                    );
+                    Destroy(impactGO, 2f); // Destroy impact effect after 2 seconds
+                }
+            }
             // Check if the object hit has a "EnemiesAI" component to apply damage
             EnemyAI enemy = hit.transform.GetComponent<EnemyAI>();
             if (enemy != null)
             {
                 enemy.takeDamageFromPlayer(); // Call takeDamageFromPlayer() on the correct target
-                
+
                 // Add score for killing the enemy (100 points)
                 if (playerScore != null)
                 {

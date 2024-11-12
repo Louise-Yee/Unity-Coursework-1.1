@@ -4,7 +4,15 @@ using UnityEngine;
 
 public class ControlTrigger : MonoBehaviour
 {
-    public enum ControlType { Move, Jump, Run, Crouch, Shoot }
+    public enum ControlType
+    {
+        Move,
+        Jump,
+        Run,
+        Crouch,
+        Shoot,
+    }
+
     public ControlType controlToUnlock;
     private TutorialManager tutorialManager;
 
@@ -38,11 +46,12 @@ public class ControlTrigger : MonoBehaviour
         }
     }
 
-    private void Start(){
+    private void Start()
+    {
         tutorialManager = FindObjectOfType<TutorialManager>();
-        if(tutorialManager == null){
+        if (tutorialManager == null)
+        {
             Debug.LogError("TutorialManager not found in scene");
         }
     }
 }
-

@@ -1,21 +1,24 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class disableObject : MonoBehaviour
-
+public class DisableObject : MonoBehaviour
 {
-    // Reference to the GameObject you want to disable
-    public GameObject targetObject;
+    public GameObject targetObject; // The GameObject to disable (the one containing this script)
 
     private void OnTriggerEnter(Collider other)
     {
-        // Check for the condition you want (e.g., Player entering the trigger)
-        if (other.CompareTag("Player")) // Make sure the "Player" tag is applied to the player object
+        if (other.CompareTag("Player"))
         {
-            // Disable the target GameObject
-            targetObject.SetActive(false);
+            if (targetObject != null)
+            {
+                targetObject.SetActive(false);
+            }
+
+            // Start the timer on the player
+            PlayerTimer playerTimer = other.GetComponent<PlayerTimer>();
+            if (playerTimer != null)
+            {
+                playerTimer.StartTimer();
+            }
         }
     }
 }
-

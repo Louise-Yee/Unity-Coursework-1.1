@@ -7,11 +7,12 @@ public class PlayerOptionMenu : MonoBehaviour
     public GameObject playerHUD;
     public MonoBehaviour playerInputScript; // Reference to the player input handling script
     public AudioSource bgmAudioSource; // Reference to the background music AudioSource
-    private bool isPaused = false;
+    public bool isPaused = false;
+    public bool isGameOver = false;
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape) && !isGameOver)
         {
             if (isPaused)
             {

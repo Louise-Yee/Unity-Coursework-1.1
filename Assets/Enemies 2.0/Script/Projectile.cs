@@ -31,6 +31,11 @@ public class Projectile : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             // Debug.Log("Hit the player!");
+            PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(); // Example function call to decrease health by 1
+            }
             gameObject.SetActive(false); // Deactivate instead of destroying
         }
     }
