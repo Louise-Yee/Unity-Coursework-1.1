@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class UnlockControls : MonoBehaviour
 {
+    public EnemySpawner enemySpawner; // Reference to EnemySpawner
     private void OnTriggerEnter(Collider other)
     {
+        enemySpawner.ActivateSpawning();  // Activate spawning here
         if (other.CompareTag("Player"))
         {
             TutorialManager tutorialManager = FindObjectOfType<TutorialManager>();
