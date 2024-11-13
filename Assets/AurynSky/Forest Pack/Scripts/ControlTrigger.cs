@@ -16,12 +16,54 @@ public class ControlTrigger : MonoBehaviour
     public ControlType controlToUnlock;
     private TutorialManager tutorialManager;
 
+    public EnemySpawner enemySpawner; // Reference to EnemySpawner
+
+    // private void OnTriggerEnter(Collider other)
+    // {
+    //     if (other.CompareTag("Player") && tutorialManager != null)
+    //     {
+    //         TutorialManager tutorialManager = FindObjectOfType<TutorialManager>();
+    //         tutorialManager.ShowNextPanel();
+    //         switch (controlToUnlock)
+    //         {
+    //             case ControlType.Move:
+    //                 tutorialManager.UnlockMove();
+    //                 break;
+    //             case ControlType.Jump:
+    //                 tutorialManager.UnlockJump();
+    //                 break;
+    //             case ControlType.Run:
+    //                 tutorialManager.UnlockRun();
+    //                 break;
+    //             case ControlType.Crouch:
+    //                 tutorialManager.UnlockCrouch();
+    //                 break;
+    //             case ControlType.Shoot:
+    //                 tutorialManager.UnlockShoot();
+    //                 break;
+    //         }
+
+    //         // Call the SpawnFixedNumberOfEnemies function
+    //         if (enemySpawner != null)
+    //         {
+    //             enemySpawner.SpawnFixedNumberOfEnemies();
+    //         }
+    //         else
+    //         {
+    //             Debug.LogError("EnemySpawner reference is not assigned.");
+    //         }
+
+    //         // Optionally, disable the trigger after activation
+    //         gameObject.SetActive(false);
+    //     }
+    // }
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player") && tutorialManager != null)
         {
             TutorialManager tutorialManager = FindObjectOfType<TutorialManager>();
             tutorialManager.ShowNextPanel();
+
             switch (controlToUnlock)
             {
                 case ControlType.Move:
@@ -41,8 +83,17 @@ public class ControlTrigger : MonoBehaviour
                     break;
             }
 
-            // Optionally, disable the trigger after activation
-            gameObject.SetActive(false);
+            if (enemySpawner != null)
+            {
+                enemySpawner.ActivateSpawning();  // Activate spawning here
+                enemySpawner.SpawnFixedNumberOfEnemies();  // Initial spawn if needed
+            }
+            else
+            {
+                Debug.LogError("EnemySpawner reference is not assigned.");
+            }
+
+            gameObject.SetActive(false);  // Optionally disable trigger
         }
     }
 
