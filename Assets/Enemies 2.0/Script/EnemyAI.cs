@@ -137,9 +137,6 @@ public class EnemyAI : MonoBehaviour
         animator.SetBool("isRunning", false); // Stop running animation
         animator.SetTrigger("isAttacking"); // Trigger attack animation
 
-        // Attack logic
-        // Debug.Log("Attacking");
-
         // Get a projectile from the pool
         GameObject proj = ObjectPool.Instance.GetPooledObject();
         if (proj != null)
@@ -182,35 +179,16 @@ public class EnemyAI : MonoBehaviour
         alreadyAttacked = false;
     }
 
-    // private void TakeDamage()
-    // {
-    //     Destroy(gameObject);
-    // }
-
-    // private void OnDrawGizmosSelected()
-    // {
-    //     // Change color for attack range (red)
-    //     Gizmos.color = Color.red;
-    //     Gizmos.DrawWireSphere(transform.position, attackRange);
-
-    //     // Change color for sight range (yellow)
-    //     Gizmos.color = Color.yellow;
-    //     Gizmos.DrawWireSphere(transform.position, sightRange);
-    // }
-
     public void takeDamageFromPlayer()
     {
         if (agent != null)
         {
             Die(); // Trigger dissolve animation
         }
-        // Destroy the entire GameObject
-        // Destroy(gameObject);
     }
 
     private void Die()
     {
-        // animator.SetTrigger("isDissolving"); // Trigger dissolve animation
         // Invoke the OnEnemyDeath event
         OnEnemyDeath?.Invoke(gameObject); // Notify subscribers about this enemy’s death
     }
