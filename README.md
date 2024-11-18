@@ -79,7 +79,7 @@ Achieve the highest possible score within the one-minute time limit while dodgin
 | Role                | Name          |  
 |---------------------|---------------|  
 | **Enemy Mechanic**  | Prabhjot Singh |  
-| **Player Mechanic** | Zong Ze        |  
+| **Player Mechanic** | Yee Zong Ze        |  
 | **Map Design**      | Jeremiah Lee   |  
 
 ---
